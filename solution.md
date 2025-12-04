@@ -258,3 +258,34 @@ from tips, tests, tasks, solutions
 4. Количество решений за кодкоины - 423.
 
 Таким образом, хотя тесты покупает большее число пользователей, они почти в два раза уступают задачам по количеству покупок.
+
+--создает подзарос для формирования рабочей таблицы
+with work_table as (
+	select user_id, created_at
+	from coderun c 
+	union all
+	select user_id, created_at
+	from codesubmit c 
+	union all
+	select user_id, created_at
+from teststart t 
+),
+-- выводим из даты-времени активностей день недели и час дня
+date_time_table as (
+	select *,
+	extract (isodow from wt.created_at :: date) as nd,
+	to_char(wt.created_at :: date, 'Day') as week_day,
+	date_part('hour', wt.created_at) as hour 
+from work_table wt
+)
+select 
+	nd,
+	week_day,
+	hour,
+	count (user_id) as activities,
+	count (distinct user_id) as users
+from date_time_table
+group by nd, week_day, hour 
+order by users asc
+
+Наименьшая активность (2 пользователя) приходится на 1 и 2 часа ночи в субботу и воскресенье.
